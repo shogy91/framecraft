@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FrameCraft — We Turn Short-Form Content Into Revenue</title>
+<meta name="description" content="Premium Instagram Reels and TikTok editing agency. We help ambitious brands turn short-form content into clients, leads, and real revenue.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+
+<!--
+══════════════════════════════════════════════════════════
+  SUPABASE SETUP
+  1. Create project at https://supabase.com
+  2. Replace SUPABASE_URL and SUPABASE_KEY below
+  3. Run in SQL Editor:
+
+  CREATE TABLE waitlist (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    email text UNIQUE NOT NULL,
+    source text DEFAULT 'website',
+    created_at timestamptz DEFAULT now()
+  );
+  ALTER TABLE waitlist ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "anon_insert" ON waitlist FOR INSERT TO anon WITH CHECK (true);
+  CREATE POLICY "anon_select" ON waitlist FOR SELECT TO anon USING (true);
+══════════════════════════════════════════════════════════
+-->
+
+<style>
+/* ── RESET ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+
+/* ── TOKENS ────────────────────────────────────────── */
+:root {
+  /* Base — mid-dark warm slate, not pure black */
+  --ink:      #0f0e0c;
+  --ink2:     #2c2820;
+  --ink3:     #6b6258;
+  --ink4:     #9a9088;
+  --paper:    #1a1814;
+  --paper2:   #201e19;
+  --paper3:   #2a2720;
+  --white:    #f5f0e8;
+
+  /* Borders — light on dark */
+  --b1: rgba(245,240,232,0.07);
+  --b2: rgba(245,240,232,0.12);
+  --b3: rgba(245,240,232,0.04);
+
+  /* Accent palette — warm amber + soft teal */
+  --amber:      #c9883a;
+  --amber2:     #dea04e;
+  --amber-pale: rgba(201,136,58,0.13);
+  --amber-faint:rgba(201,136,58,0.06);
+
+  --teal:       #4a9690;
+  --teal2:      #5eb8b0;
+  --teal-pale:  rgba(74,150,144,0.12);
+
+  --rose:       #c06070;
+  --rose-pale:  rgba(192,96,112,0.12);
+
+  /* Gradients */
+  --grad-hero: linear-gradient(145deg, #1e1b15 0%, #1c1a17 40%, #1a1820 75%, #161a19 100%);
+  --grad-card: linear-gradient(135deg, rgba(40,36,28,0.9), rgba(30,27,20,0.7));
+  --grad-amber: linear-gradient(135deg, #c9883a, #dea04e);
+  --grad-mesh:  radial-gradient(ellipse at 20% 30%, rgba(201,136,58,0.09) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 70%, rgba(74,150,144,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 55% 10%, rgba(192,96,112,0.05) 0%, transparent 45%);
+
+  --radius: 3px;
+  --radius-md: 8px;
+  --ease: cubic-bezier(0.16,1,0.3,1);
+}
+
+/* ── BASE ──────────────────────────────────────────── */
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--white);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle noise texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px;
+}
+
+/* ── TYPOGRAPHY ────────────────────────────────────── */
+.serif { font-family: 'Playfair Display', serif; }
+
+h1, h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 300;
+}
+h3, h4 { font-family: 'DM Sans', sans-serif; font-weight: 600; }
+
+.eyebrow {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--amber);
+  display: flex; align-items: center; gap: 10px;
+}
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 22px; height: 1px;
+  background: var(--amber);
+  flex-shrink: 0;
+}
+
+/* ── NAV ────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.4rem 3.5rem;
+  background: rgba(26,24,20,0.85);
+  backdrop-filter: blur(18px) saturate(1.5);
+  border-bottom: 0.5px solid var(--b1);
+  transition: padding 0.35s var(--ease);
+}
+nav.scrolled { padding: 1rem 3.5rem; }
+
+.nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--white);
+  text-decoration: none;
+}
+.nav-logo em { font-style: italic; color: var(--amber); }
+
+nav ul { list-style: none; display: flex; gap: 2.5rem; }
+nav ul a {
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--ink4);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+nav ul a:hover { color: var(--white); }
+
+/* ── BUTTONS ───────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0.72rem 1.5rem;
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+  background: var(--grad-amber);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(192,123,47,0.25);
+}
+.btn-primary:hover { box-shadow: 0 6px 24px rgba(192,123,47,0.35); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--white);
+  border: 1px solid var(--b2);
+}
+.btn-outline:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-faint); }
+
+.btn-ink {
+  background: var(--white);
+  color: var(--ink);
+}
+.btn-ink:hover { background: var(--amber2); color: #fff; box-shadow: 0 6px 20px rgba(201,136,58,0.25); }
+
+/* ── HERO ───────────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 11rem 2rem 7rem;
+  position: relative;
+  overflow: hidden;
+  background: var(--grad-hero);
+}
+
+/* Mesh color blobs */
+.hero-mesh {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: var(--grad-mesh);
+}
+
+/* Faint grid lines */
+.hero-grid {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(var(--b1) 1px, transparent 1px),
+    linear-gradient(90deg, var(--b1) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 40%, transparent 100%);
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0.4rem 1.1rem;
+  background: rgba(245,240,232,0.06);
+  border: 0.5px solid var(--b2);
+  border-radius: 100px;
+  margin-bottom: 2.5rem;
+  position: relative; z-index: 1;
+  backdrop-filter: blur(6px);
+}
+.badge-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--teal2);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(78,155,147,0.45)} 50%{box-shadow:0 0 0 5px rgba(78,155,147,0)} }
+.badge-text { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); }
+
+.hero h1 {
+  font-size: clamp(3.2rem, 6.5vw, 6.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  max-width: 860px;
+  margin-bottom: 1.5rem;
+  position: relative; z-index: 1;
+  color: var(--white);
+}
+.hero h1 em { font-style: italic; color: var(--amber); }
+
+.hero-sub {
+  font-size: 1.05rem;
+  font-weight: 300;
+  color: var(--ink4);
+  max-width: 460px;
+  line-height: 1.8;
+  margin-bottom: 2.75rem;
+  position: relative; z-index: 1;
+}
+
+.hero-ctas { display: flex; gap: 10px; align-items: center; position: relative; z-index: 1; }
+
+/* Proof strip */
+.hero-proof {
+  margin-top: 5.5rem;
+  display: flex; gap: 0;
+  position: relative; z-index: 1;
+  border: 0.5px solid var(--b2);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: rgba(245,240,232,0.04);
+  backdrop-filter: blur(10px);
+}
+.proof-item {
+  padding: 1.5rem 2.5rem;
+  text-align: center;
+  border-right: 0.5px solid var(--b2);
+}
+.proof-item:last-child { border-right: none; }
+.proof-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  color: var(--white);
+  line-height: 1;
+}
+.proof-num em { font-style: italic; color: var(--amber); }
+.proof-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink4);
+  margin-top: 0.35rem;
+}
+
+/* ── MARQUEE ────────────────────────────────────────── */
+.marquee-strip {
+  padding: 1.2rem 0;
+  background: var(--ink);
+  overflow: hidden;
+  position: relative; z-index: 1;
+}
+.marquee-track {
+  display: flex; gap: 2.5rem;
+  animation: marquee 30s linear infinite;
+  white-space: nowrap;
+}
+.marquee-item {
+  display: flex; align-items: center; gap: 2rem;
+  font-size: 0.68rem; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: rgba(250,248,244,0.4);
+  flex-shrink: 0;
+}
+.marquee-item::after { content: '◆'; color: var(--amber); font-size: 0.4rem; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── SECTION LAYOUT ─────────────────────────────────── */
+.section { padding: 8rem 3.5rem; position: relative; z-index: 1; }
+.section-inner { max-width: 1100px; margin: 0 auto; }
+.section-header { margin-bottom: 4.5rem; }
+
+/* ── PORTFOLIO ──────────────────────────────────────── */
+.portfolio { background: var(--paper); }
+.case-studies { display: flex; flex-direction: column; gap: 1px; }
+
+.case-study {
+  display: grid; grid-template-columns: 1fr 1fr;
+  background: var(--paper2);
+  border: 0.5px solid var(--b1);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: box-shadow 0.3s var(--ease), border-color 0.3s;
+  margin-bottom: 1.5rem;
+}
+.case-study:hover { box-shadow: 0 12px 48px rgba(0,0,0,0.3); border-color: var(--b2); }
+
+/* CS visual area */
+.cs-visual {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 400px; position: relative; overflow: hidden;
+  padding: 3rem;
+}
+.cs-visual-1 {
+  background: linear-gradient(135deg, #1e1a2a 0%, #241828 50%, #162220 100%);
+}
+.cs-visual-2 {
+  background: linear-gradient(135deg, #151c24 0%, #1c1814 50%, #201416 100%);
+}
+
+/* Phone mockup */
+.phone {
+  width: 148px;
+  background: #1a1814;
+  border-radius: 24px;
+  border: 1px solid rgba(245,240,232,0.1);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3);
+  overflow: hidden;
+  position: relative; z-index: 2;
+}
+.phone-bar {
+  height: 22px; background: #141210;
+  display: flex; align-items: center; justify-content: center;
+  border-bottom: 0.5px solid rgba(245,240,232,0.05);
+}
+.phone-pill { width: 44px; height: 4px; background: #2a2620; border-radius: 2px; }
+.phone-body { padding: 6px 5px; }
+.reel-item {
+  border-radius: 7px; margin-bottom: 4px; overflow: hidden;
+  position: relative;
+}
+.ri-1 { background: linear-gradient(145deg, #2d1a4a, #4a2060, #6b2d5e); height: 160px; }
+.ri-2 { background: linear-gradient(145deg, #0d2b20, #1a4a35, #255c42); height: 120px; }
+.reel-inner { position: absolute; inset: 0; padding: 8px; display: flex; flex-direction: column; justify-content: flex-end; }
+.ri-pill {
+  display: inline-block;
+  font-size: 6.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  background: var(--amber2); color: #fff;
+  padding: 2px 5px; border-radius: 2px; margin-bottom: 3px; width: fit-content;
+}
+.ri-views { font-size: 9px; font-weight: 700; color: #fff; }
+.ri-stats { display: flex; gap: 5px; margin-top: 1px; }
+.ri-stat { font-size: 7px; color: rgba(255,255,255,0.65); }
+
+/* Metrics card */
+.metrics-card {
+  background: #1e1c17;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--b2);
+  padding: 20px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+  width: 260px;
+  position: relative; z-index: 2;
+}
+.mc-title { font-size: 9px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink4); margin-bottom: 12px; }
+.mc-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 0; border-bottom: 0.5px solid var(--b3);
+}
+.mc-row:last-child { border-bottom: none; }
+.mc-key { font-size: 10px; font-weight: 500; color: var(--ink3); }
+.mc-val { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 300; color: var(--white); }
+.mc-badge {
+  font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 100px;
+}
+.mc-up { background: rgba(34,197,94,0.12); color: #4ade80; }
+.mc-bar { height: 2.5px; border-radius: 1px; margin-top: 3px; }
+
+.cs-content { padding: 3.5rem; display: flex; flex-direction: column; justify-content: center; }
+
+.cs-tag {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--amber); margin-bottom: 1.25rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.cs-tag::before { content: ''; width: 18px; height: 1px; background: var(--amber); }
+
+.cs-content h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.9rem; font-weight: 300; line-height: 1.2;
+  letter-spacing: -0.015em; margin-bottom: 1rem; color: var(--white);
+}
+.cs-content h3 em { font-style: italic; color: var(--amber); }
+.cs-content p { font-size: 0.875rem; color: var(--ink4); line-height: 1.8; font-weight: 300; margin-bottom: 2rem; }
+
+.cs-stats { display: flex; gap: 2.5rem; margin-bottom: 2rem; }
+.cs-stat-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem; font-weight: 300; letter-spacing: -0.03em;
+  color: var(--white); line-height: 1;
+}
+.cs-stat-val em { color: var(--amber); font-style: italic; }
+.cs-stat-key { font-size: 0.7rem; font-weight: 500; color: var(--ink4); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 0.25rem; }
+
+.cs-pills { display: flex; gap: 0.6rem; flex-wrap: wrap; padding-top: 1.5rem; border-top: 0.5px solid var(--b1); }
+.cs-pill {
+  font-size: 0.7rem; font-weight: 500; color: var(--ink3); letter-spacing: 0.05em;
+  padding: 0.3rem 0.8rem;
+  background: var(--paper3); border-radius: 100px;
+  border: 0.5px solid var(--b2);
+}
+
+/* ── TESTIMONIALS ───────────────────────────────────── */
+.testimonials { background: var(--paper2); }
+
+.testi-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+}
+
+.testi-card {
+  background: var(--paper3);
+  border: 0.5px solid var(--b1);
+  border-radius: var(--radius-md);
+  padding: 2.25rem 2rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
+  transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.testi-card:hover { box-shadow: 0 8px 36px rgba(0,0,0,0.3); transform: translateY(-3px); }
+
+/* Subtle accent top border per card */
+.testi-card:nth-child(1) { border-top: 2px solid var(--amber); }
+.testi-card:nth-child(2) { border-top: 2px solid var(--teal2); }
+.testi-card:nth-child(3) { border-top: 2px solid var(--rose); }
+
+.testi-stars { display: flex; gap: 2px; align-items: center; }
+.star-filled { color: var(--amber2); font-size: 0.8rem; }
+.star-empty  { color: rgba(245,240,232,0.12); font-size: 0.8rem; }
+.star-half   { color: var(--amber2); font-size: 0.8rem; opacity: 0.55; }
+.testi-score { font-size: 0.72rem; font-weight: 600; color: var(--ink4); margin-left: 4px; }
+
+.testi-quote {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem; font-weight: 300; font-style: italic;
+  line-height: 1.7; color: var(--white); flex: 1;
+}
+.testi-quote::before { content: '\201C'; color: var(--amber); font-size: 1.6rem; line-height: 0; vertical-align: -0.35em; margin-right: 2px; }
+
+.testi-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 0.5px solid var(--b1); }
+.testi-author { display: flex; align-items: center; gap: 10px; }
+.testi-ava {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
+}
+.ava-1 { background: rgba(201,136,58,0.15); color: var(--amber); }
+.ava-2 { background: rgba(74,150,144,0.15); color: var(--teal2); }
+.ava-3 { background: rgba(192,96,112,0.15); color: var(--rose); }
+.testi-name { font-size: 0.82rem; font-weight: 600; color: var(--white); }
+.testi-role { font-size: 0.7rem; color: var(--ink4); margin-top: 1px; }
+.testi-platform {
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink4); padding: 0.25rem 0.6rem;
+  border: 0.5px solid var(--b2); border-radius: 100px;
+}
+
+/* ── PRICING ────────────────────────────────────────── */
+.pricing { background: var(--paper); }
+
+.pricing-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+}
+
+.pricing-card {
+  background: var(--paper2);
+  border: 0.5px solid var(--b1);
+  border-radius: var(--radius-md);
+  padding: 2.5rem 2rem;
+  position: relative;
+  display: flex; flex-direction: column;
+  transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.pricing-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.3); transform: translateY(-3px); }
+
+.pricing-card.featured {
+  background: linear-gradient(165deg, #252018, #201c12);
+  border: 1px solid rgba(201,136,58,0.3);
+  box-shadow: 0 4px 24px rgba(201,136,58,0.12);
+}
+.pricing-card.featured:hover { box-shadow: 0 16px 48px rgba(201,136,58,0.2); }
+
+.plan-popular {
+  display: inline-block;
+  font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--amber); border: 0.5px solid rgba(201,136,58,0.35);
+  padding: 3px 10px; border-radius: 100px;
+  margin-bottom: 1.5rem; width: fit-content;
+  background: var(--amber-pale);
+}
+
+.plan-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem; font-weight: 300; color: var(--white); margin-bottom: 0.2rem;
+}
+.plan-tagline { font-size: 0.78rem; color: var(--ink4); margin-bottom: 1.75rem; font-weight: 300; }
+
+.plan-divider { height: 0.5px; background: var(--b1); margin-bottom: 1.75rem; }
+
+.plan-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.8rem; font-weight: 300; letter-spacing: -0.04em;
+  color: var(--white); line-height: 1;
+}
+.plan-price sup { font-size: 1.1rem; vertical-align: super; font-family: 'DM Sans', sans-serif; font-weight: 400; color: var(--ink3); }
+.plan-price sub { font-size: 0.9rem; vertical-align: baseline; font-family: 'DM Sans', sans-serif; font-weight: 400; color: var(--ink4); }
+.plan-billing { font-size: 0.72rem; color: var(--ink4); margin-top: 0.2rem; margin-bottom: 2rem; }
+
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 2rem; flex: 1; }
+.plan-features li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 0.82rem; color: var(--ink4); line-height: 1.5; font-weight: 300;
+}
+.plan-features li .check { color: var(--teal2); font-size: 0.9rem; flex-shrink: 0; margin-top: 1px; }
+.plan-features li.dim { color: var(--ink3); opacity: 0.6; }
+.plan-features li.dim .check { color: var(--ink3); opacity: 0.4; }
+
+.plan-btn { width: 100%; justify-content: center; margin-top: auto; }
+
+.pricing-footnote {
+  text-align: center; margin-top: 2.5rem;
+  font-size: 0.8rem; color: var(--ink4); line-height: 1.75;
+}
+.pricing-footnote a { color: var(--amber); text-decoration: none; }
+
+/* ── APPLY / CTA ────────────────────────────────────── */
+.cta-section {
+  background: linear-gradient(160deg, #131108 0%, #161410 50%, #111614 100%);
+  position: relative; overflow: hidden;
+}
+
+/* Decorative blobs on dark bg */
+.cta-section::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 500px 400px at 10% 60%, rgba(201,136,58,0.09), transparent),
+    radial-gradient(ellipse 400px 350px at 90% 30%, rgba(74,150,144,0.07), transparent);
+}
+
+.cta-inner {
+  max-width: 640px; margin: 0 auto; text-align: center;
+  padding: 8rem 2rem; position: relative; z-index: 1;
+}
+
+.cta-inner h2 {
+  font-size: clamp(2.4rem, 4.5vw, 4rem);
+  line-height: 1.08; letter-spacing: -0.025em;
+  color: #f5f0e8; margin-bottom: 1.1rem;
+}
+.cta-inner h2 em { font-style: italic; color: var(--amber2); }
+.cta-inner p { font-size: 0.95rem; color: rgba(245,240,232,0.55); font-weight: 300; line-height: 1.8; margin-bottom: 3rem; }
+
+/* Waitlist form */
+.wl-wrap { max-width: 460px; margin: 0 auto; }
+
+.wl-input-row {
+  display: flex; overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(8px);
+  margin-bottom: 0.9rem;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.wl-input-row:focus-within {
+  border-color: rgba(192,123,47,0.5);
+  box-shadow: 0 0 0 3px rgba(192,123,47,0.08);
+}
+.wl-input-row.error { border-color: rgba(239,68,68,0.5); }
+.wl-input-row.shake { animation: shake 0.38s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+
+.wl-input-row input {
+  flex: 1; padding: 0.95rem 1.25rem;
+  background: transparent; border: none; outline: none;
+  font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+  color: #f5f0e8;
+}
+.wl-input-row input::placeholder { color: rgba(245,240,232,0.3); }
+.wl-input-row button {
+  padding: 0.95rem 1.4rem;
+  background: var(--grad-amber); color: #fff;
+  border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 0.75rem;
+  font-weight: 600; letter-spacing: 0.07em;
+  white-space: nowrap; transition: opacity 0.2s;
+  position: relative; min-width: 120px;
+}
+.wl-input-row button:disabled { opacity: 0.6; cursor: default; }
+.wl-input-row button:hover:not(:disabled) { opacity: 0.9; }
+
+.spin {
+  display: none; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.25); border-top-color: #fff;
+  border-radius: 50%; animation: spin 0.6s linear infinite;
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+}
+@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+.loading .btn-label { visibility: hidden; }
+.loading .spin { display: block; }
+
+.wl-error { font-size: 0.78rem; color: #fca5a5; display: none; margin-top: 0.4rem; }
+.wl-hint { font-size: 0.72rem; color: rgba(245,240,232,0.3); letter-spacing: 0.04em; }
+
+.live-counter {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 1.75rem; padding: 0.4rem 1rem;
+  background: rgba(255,255,255,0.05);
+  border: 0.5px solid rgba(255,255,255,0.1);
+  border-radius: 100px;
+  font-size: 0.72rem; color: rgba(245,240,232,0.4); font-weight: 500;
+}
+.live-counter strong { color: rgba(245,240,232,0.7); font-weight: 600; }
+.live-dot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; animation: pulse 2.5s ease-in-out infinite; }
+
+/* Success */
+.wl-success {
+  display: none; flex-direction: column; align-items: center; gap: 1rem;
+  padding: 2.5rem; background: rgba(255,255,255,0.04);
+  border: 0.5px solid rgba(192,123,47,0.25);
+  border-radius: var(--radius-md);
+}
+.wl-success-icon {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: rgba(192,123,47,0.12);
+  display: flex; align-items: center; justify-content: center;
+}
+.wl-success-icon svg { width: 18px; height: 18px; }
+.wl-success h4 {
+  font-family: 'Playfair Display', serif; font-size: 1.4rem;
+  font-weight: 300; font-style: italic; color: #f5f0e8;
+}
+.wl-success p { font-size: 0.82rem; color: rgba(245,240,232,0.45); line-height: 1.7; text-align: center; }
+.wl-success a { color: var(--amber2); text-decoration: none; }
+
+/* ── FOOTER ─────────────────────────────────────────── */
+footer {
+  padding: 2.5rem 3.5rem;
+  border-top: 0.5px solid var(--b1);
+  background: var(--paper);
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; z-index: 1;
+}
+.footer-logo {
+  font-family: 'Playfair Display', serif; font-size: 1.1rem;
+  font-weight: 400; color: var(--white); text-decoration: none;
+}
+.footer-logo em { font-style: italic; color: var(--amber); }
+footer p { font-size: 0.75rem; color: var(--ink4); }
+.footer-links { display: flex; gap: 2rem; }
+.footer-links a {
+  font-size: 0.75rem; font-weight: 500; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink4); text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--amber); }
+
+/* ── REVEALS ────────────────────────────────────────── */
+.reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.75s var(--ease), transform 0.75s var(--ease);
+}
+.reveal.up { opacity: 1; transform: none; }
+.d1 { transition-delay: 0.1s; } .d2 { transition-delay: 0.2s; }
+.d3 { transition-delay: 0.3s; } .d4 { transition-delay: 0.4s; }
+
+/* ── RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 960px) {
+  nav { padding: 1.1rem 1.5rem; }
+  nav ul, nav .btn { display: none; }
+  .section { padding: 5rem 1.5rem; }
+  .hero { padding: 9rem 1.5rem 5rem; }
+  .hero-proof { flex-direction: column; width: 100%; }
+  .proof-item { border-right: none; border-bottom: 0.5px solid var(--b2); }
+  .proof-item:last-child { border-bottom: none; }
+  .case-study { grid-template-columns: 1fr; }
+  .cs-visual { min-height: 240px; }
+  .cs-content { padding: 2rem 1.5rem; }
+  .testi-grid, .pricing-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem 1.5rem; }
+  .footer-links { flex-wrap: wrap; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ──────────── NAV ──────────── -->
+<nav id="nav">
+  <a href="#" class="nav-logo">Frame<em>Craft</em></a>
+  <ul>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#testimonials">Results</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <a href="#apply" class="btn btn-primary">Apply Now →</a>
+</nav>
+
+<!-- ──────────── HERO ──────────── -->
+<section class="hero">
+  <div class="hero-mesh"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-badge reveal">
+    <div class="badge-dot"></div>
+    <span class="badge-text">Accepting Q3 clients — 3 spots open</span>
+  </div>
+
+  <h1 class="reveal d1">
+    We turn short-form<br>content into <em>real revenue.</em>
+  </h1>
+
+  <p class="hero-sub reveal d2">
+    Premium Instagram Reels and TikTok editing for brands that are done blending in. Strategy-driven, conversion-focused, built to grow.
+  </p>
+
+  <div class="hero-ctas reveal d3">
+    <a href="#apply" class="btn btn-primary">Get a Free Strategy Call →</a>
+    <a href="#work" class="btn btn-outline">See Our Work</a>
+  </div>
+
+  <div class="hero-proof reveal d4">
+    <div class="proof-item">
+      <div class="proof-num">3.<em>2M</em></div>
+      <div class="proof-label">Views generated</div>
+    </div>
+    <div class="proof-item">
+      <div class="proof-num"><em>8</em>×</div>
+      <div class="proof-label">Avg. engagement lift</div>
+    </div>
+    <div class="proof-item">
+      <div class="proof-num">40<em>+</em></div>
+      <div class="proof-label">Brands scaled</div>
+    </div>
+    <div class="proof-item">
+      <div class="proof-num"><em>$</em>2M</div>
+      <div class="proof-label">Revenue attributed</div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────── MARQUEE ──────────── -->
+<div class="marquee-strip">
+  <div class="marquee-track" id="marqueeTrack">
+    <div class="marquee-item">Instagram Reels</div>
+    <div class="marquee-item">TikTok Editing</div>
+    <div class="marquee-item">Hook Strategy</div>
+    <div class="marquee-item">Viral Formats</div>
+    <div class="marquee-item">Color Grading</div>
+    <div class="marquee-item">Branded Captions</div>
+    <div class="marquee-item">Sound Design</div>
+    <div class="marquee-item">Content Calendar</div>
+    <div class="marquee-item">Performance Analytics</div>
+    <div class="marquee-item">Fast Turnaround</div>
+    <!-- duplicated -->
+    <div class="marquee-item">Instagram Reels</div>
+    <div class="marquee-item">TikTok Editing</div>
+    <div class="marquee-item">Hook Strategy</div>
+    <div class="marquee-item">Viral Formats</div>
+    <div class="marquee-item">Color Grading</div>
+    <div class="marquee-item">Branded Captions</div>
+    <div class="marquee-item">Sound Design</div>
+    <div class="marquee-item">Content Calendar</div>
+    <div class="marquee-item">Performance Analytics</div>
+    <div class="marquee-item">Fast Turnaround</div>
+  </div>
+</div>
+
+<!-- ──────────── PORTFOLIO ──────────── -->
+<section class="section portfolio" id="work">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="eyebrow" style="margin-bottom:1rem;">Case Studies</div>
+      <h2 style="font-size:clamp(2rem,3.8vw,3.2rem);letter-spacing:-0.02em;line-height:1.1;max-width:460px;">
+        Results that speak.<br><em style="color:var(--amber);">Numbers that close.</em>
+      </h2>
+    </div>
+
+    <div class="case-studies">
+
+      <!-- Case Study 1 -->
+      <div class="case-study reveal">
+        <div class="cs-visual cs-visual-1">
+          <div class="phone">
+            <div class="phone-bar"><div class="phone-pill"></div></div>
+            <div class="phone-body">
+              <div class="reel-item ri-1">
+                <div class="reel-inner">
+                  <div class="ri-pill">Trending</div>
+                  <div class="ri-views">1.4M views</div>
+                  <div class="ri-stats">
+                    <span class="ri-stat">❤ 84K</span>
+                    <span class="ri-stat">💬 2.1K</span>
+                    <span class="ri-stat">➤ 18K</span>
+                  </div>
+                </div>
+              </div>
+              <div class="reel-item ri-2">
+                <div class="reel-inner">
+                  <div class="ri-pill">Top Reel</div>
+                  <div class="ri-views">620K views</div>
+                  <div class="ri-stats">
+                    <span class="ri-stat">❤ 41K</span>
+                    <span class="ri-stat">💬 870</span>
+                  </div>
+                </div>
+              </div>
+              <div style="padding:5px 2px 3px;">
+                <div style="font-size:7px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink4);margin-bottom:4px;">Follower growth</div>
+                <svg viewBox="0 0 138 24" style="width:100%;height:auto;">
+                  <defs>
+                    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#c07b2f" stop-opacity="0.4"/>
+                      <stop offset="100%" stop-color="#d9973e"/>
+                    </linearGradient>
+                    <linearGradient id="fillGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#c07b2f" stop-opacity="0.12"/>
+                      <stop offset="100%" stop-color="#c07b2f" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,22 C10,21 20,20 35,17 C50,14 62,11 78,7 C94,3 110,2 138,1 L138,24 L0,24 Z" fill="url(#fillGrad)"/>
+                  <path d="M0,22 C10,21 20,20 35,17 C50,14 62,11 78,7 C94,3 110,2 138,1" fill="none" stroke="url(#lineGrad)" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cs-content">
+          <div class="cs-tag">Case Study 01 — D2C Skincare Brand</div>
+          <h3>From 4K followers to <em>180K in 90 days.</em></h3>
+          <p>Lumière Skin had polished products but zero short-form presence. Their Reels were reaching less than 3% of their own audience. We audited their hook structure, rebuilt their visual identity, and deployed a systematic Reels strategy built to convert cold audiences into buyers.</p>
+          <div class="cs-stats">
+            <div>
+              <div class="cs-stat-val">+<em>176K</em></div>
+              <div class="cs-stat-key">New followers</div>
+            </div>
+            <div>
+              <div class="cs-stat-val"><em>14</em>×</div>
+              <div class="cs-stat-key">Reach increase</div>
+            </div>
+            <div>
+              <div class="cs-stat-val"><em>$</em>280K</div>
+              <div class="cs-stat-key">Revenue, 90 days</div>
+            </div>
+          </div>
+          <div class="cs-pills">
+            <span class="cs-pill">Hook Audit</span>
+            <span class="cs-pill">Visual Rebrand</span>
+            <span class="cs-pill">16 Reels/mo</span>
+            <span class="cs-pill">A/B Testing</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Case Study 2 -->
+      <div class="case-study reveal d1">
+        <div class="cs-content" style="order:1;">
+          <div class="cs-tag">Case Study 02 — B2B SaaS Founder</div>
+          <h3>TikTok → <em>$40K MRR</em> in 4 months, zero ad spend.</h3>
+          <p>Marcus Chen had a solid LinkedIn presence but zero short-form footprint. He was spending $8K/month on paid ads. We positioned him as the go-to voice for startup operators on TikTok, turning his expertise into a daily content engine that built pipeline organically.</p>
+          <div class="cs-stats">
+            <div>
+              <div class="cs-stat-val"><em>$</em>40K</div>
+              <div class="cs-stat-key">MRR generated</div>
+            </div>
+            <div>
+              <div class="cs-stat-val">220<em>K</em></div>
+              <div class="cs-stat-key">TikTok followers</div>
+            </div>
+            <div>
+              <div class="cs-stat-val"><em>$</em>0</div>
+              <div class="cs-stat-key">Ad spend</div>
+            </div>
+          </div>
+          <div class="cs-pills">
+            <span class="cs-pill">Niche Positioning</span>
+            <span class="cs-pill">Content Pillars</span>
+            <span class="cs-pill">20 TikToks/mo</span>
+            <span class="cs-pill">CTA Strategy</span>
+          </div>
+        </div>
+
+        <div class="cs-visual cs-visual-2" style="order:2;">
+          <div class="metrics-card">
+            <div class="mc-title">Monthly Performance</div>
+            <div class="mc-row">
+              <div>
+                <div class="mc-key">Monthly Revenue</div>
+                <div class="mc-val" style="font-size:1.3rem;">$40,200</div>
+                <div class="mc-bar" style="width:90%;background:linear-gradient(90deg,#c07b2f,#d9973e);"></div>
+              </div>
+              <div class="mc-badge mc-up">+318%</div>
+            </div>
+            <div class="mc-row">
+              <div>
+                <div class="mc-key">Inbound Leads / mo</div>
+                <div class="mc-val">143</div>
+                <div class="mc-bar" style="width:70%;background:linear-gradient(90deg,#3d7a73,#4e9b93);"></div>
+              </div>
+              <div class="mc-badge mc-up">+840%</div>
+            </div>
+            <div class="mc-row">
+              <div>
+                <div class="mc-key">Video Views</div>
+                <div class="mc-val">1.8M</div>
+                <div class="mc-bar" style="width:100%;background:linear-gradient(90deg,#c07b2f,#d9973e);"></div>
+              </div>
+              <div class="mc-badge mc-up">+1,200%</div>
+            </div>
+            <div class="mc-row" style="border-bottom:none;">
+              <div>
+                <div class="mc-key">Cost Per Lead</div>
+                <div class="mc-val">$0</div>
+                <div class="mc-bar" style="width:8%;background:#4ade80;"></div>
+              </div>
+              <div class="mc-badge" style="background:rgba(74,222,128,0.12);color:#4ade80;">Organic</div>
+            </div>
+            <div style="margin-top:14px;padding-top:12px;border-top:0.5px solid var(--b1);">
+              <div style="font-size:8px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink4);margin-bottom:8px;">Revenue — 4 months</div>
+              <svg viewBox="0 0 220 44" style="width:100%;height:auto;">
+                <defs>
+                  <linearGradient id="barG" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#c07b2f"/>
+                    <stop offset="100%" stop-color="#c07b2f" stop-opacity="0.35"/>
+                  </linearGradient>
+                </defs>
+                <rect x="4"   y="38" width="38" height="6"  rx="1" fill="url(#barG)" opacity="0.4"/>
+                <rect x="58"  y="28" width="38" height="16" rx="1" fill="url(#barG)" opacity="0.6"/>
+                <rect x="112" y="14" width="38" height="30" rx="1" fill="url(#barG)" opacity="0.8"/>
+                <rect x="166" y="2"  width="38" height="42" rx="1" fill="url(#barG)"/>
+                <text x="23"  y="42" fill="rgba(245,240,232,0.25)" font-size="7" text-anchor="middle" font-family="sans-serif">M1</text>
+                <text x="77"  y="42" fill="rgba(245,240,232,0.25)" font-size="7" text-anchor="middle" font-family="sans-serif">M2</text>
+                <text x="131" y="42" fill="rgba(245,240,232,0.25)" font-size="7" text-anchor="middle" font-family="sans-serif">M3</text>
+                <text x="185" y="42" fill="rgba(245,240,232,0.25)" font-size="7" text-anchor="middle" font-family="sans-serif">M4</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ──────────── TESTIMONIALS ──────────── -->
+<section class="section testimonials" id="testimonials">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="eyebrow" style="margin-bottom:1rem;">Client Feedback</div>
+      <h2 style="font-size:clamp(2rem,3.8vw,3.2rem);letter-spacing:-0.02em;line-height:1.1;max-width:440px;">
+        Real words.<br><em style="color:var(--amber);">Real results.</em>
+      </h2>
+    </div>
+
+    <div class="testi-grid">
+
+      <!-- 5 stars -->
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          <span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span>
+          <span class="testi-score">5.0</span>
+        </div>
+        <div class="testi-quote">
+          Before FrameCraft, our Reels were getting maybe 300 views. Six weeks in, we hit 1.2 million on a single video. The DMs that week brought more inbound than six months of cold outreach combined. Worth every penny.
+        </div>
+        <div class="testi-bottom">
+          <div class="testi-author">
+            <div class="testi-ava ava-1">SL</div>
+            <div>
+              <div class="testi-name">Sophie Laurent</div>
+              <div class="testi-role">Founder, Lumière Skin</div>
+            </div>
+          </div>
+          <div class="testi-platform">Instagram</div>
+        </div>
+      </div>
+
+      <!-- 4.5 stars — slightly imperfect -->
+      <div class="testi-card reveal d1">
+        <div class="testi-stars">
+          <span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-half">★</span>
+          <span class="testi-score">4.5</span>
+        </div>
+        <div class="testi-quote">
+          I was skeptical TikTok could drive real B2B pipeline. I was wrong. A $12K client told me he'd been watching my videos for three weeks before reaching out — he never would have found me any other way. Onboarding took a bit of back and forth but the end result speaks for itself.
+        </div>
+        <div class="testi-bottom">
+          <div class="testi-author">
+            <div class="testi-ava ava-2">MC</div>
+            <div>
+              <div class="testi-name">Marcus Chen</div>
+              <div class="testi-role">CEO, FlowStack SaaS</div>
+            </div>
+          </div>
+          <div class="testi-platform">TikTok</div>
+        </div>
+      </div>
+
+      <!-- 4 stars — honest -->
+      <div class="testi-card reveal d2">
+        <div class="testi-stars">
+          <span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-filled">★</span><span class="star-empty">★</span>
+          <span class="testi-score">4.0</span>
+        </div>
+        <div class="testi-quote">
+          The editing quality is genuinely premium — our content looks like it belongs next to brands with 10× our budget. The first month we worked through our style preferences, but by month two the process was seamless. We sold out our October drop in 72 hours from organic Reels alone.
+        </div>
+        <div class="testi-bottom">
+          <div class="testi-author">
+            <div class="testi-ava ava-3">JR</div>
+            <div>
+              <div class="testi-name">Jordan Reeves</div>
+              <div class="testi-role">Creative Director, Vestry Studio</div>
+            </div>
+          </div>
+          <div class="testi-platform">Instagram</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ──────────── PRICING ──────────── -->
+<section class="section pricing" id="pricing">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="eyebrow" style="margin-bottom:1rem;">Pricing</div>
+      <h2 style="font-size:clamp(2rem,3.8vw,3.2rem);letter-spacing:-0.02em;line-height:1.1;max-width:520px;">
+        Serious about growth.<br><em style="color:var(--amber);">Priced accordingly.</em>
+      </h2>
+      <p style="margin-top:1rem;font-size:0.875rem;color:var(--ink4);font-weight:300;line-height:1.8;max-width:420px;">
+        Every plan is a monthly retainer — no long-term contracts, no hidden fees. Cancel anytime.
+      </p>
+    </div>
+
+    <div class="pricing-grid">
+
+      <!-- Starter -->
+      <div class="pricing-card reveal">
+        <div class="plan-name">Starter</div>
+        <div class="plan-tagline">For creators building their first consistent presence.</div>
+        <div class="plan-divider"></div>
+        <div class="plan-price"><sup>$</sup>49<sub>/mo</sub></div>
+        <div class="plan-billing">Billed monthly · cancel anytime</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span>4 Reels or TikToks per month</li>
+          <li><span class="check">✓</span>Hook consultation on each video</li>
+          <li><span class="check">✓</span>Professional color grading</li>
+          <li><span class="check">✓</span>Captions & styled subtitles</li>
+          <li><span class="check">✓</span>Licensed music & sound design</li>
+          <li><span class="check">✓</span>3-day turnaround per video</li>
+          <li><span class="check">✓</span>Monthly strategy check-in (20 min)</li>
+          <li class="dim"><span class="check">–</span>Performance reporting</li>
+          <li class="dim"><span class="check">–</span>Dedicated editor</li>
+        </ul>
+        <a href="#apply" class="btn btn-outline plan-btn">Get Started →</a>
+      </div>
+
+      <!-- Growth (featured) -->
+      <div class="pricing-card featured reveal d1">
+        <div class="plan-popular">Most Popular</div>
+        <div class="plan-name">Growth</div>
+        <div class="plan-tagline">For brands ready to scale with consistency.</div>
+        <div class="plan-divider"></div>
+        <div class="plan-price"><sup>$</sup>149<sub>/mo</sub></div>
+        <div class="plan-billing">Billed monthly · cancel anytime</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span>12 Reels + TikToks per month</li>
+          <li><span class="check">✓</span>Full hook & script strategy</li>
+          <li><span class="check">✓</span>Cinematic color grading</li>
+          <li><span class="check">✓</span>Animated branded captions</li>
+          <li><span class="check">✓</span>Sound design & SFX</li>
+          <li><span class="check">✓</span>48-hour turnaround</li>
+          <li><span class="check">✓</span>Bi-weekly strategy calls</li>
+          <li><span class="check">✓</span>Monthly performance report</li>
+          <li><span class="check">✓</span>Dedicated editor</li>
+        </ul>
+        <a href="#apply" class="btn btn-primary plan-btn">Apply for Growth →</a>
+      </div>
+
+      <!-- Premium -->
+      <div class="pricing-card reveal d2">
+        <div class="plan-name">Premium</div>
+        <div class="plan-tagline">For serious brands that need full content coverage.</div>
+        <div class="plan-divider"></div>
+        <div class="plan-price"><sup>$</sup>299<sub>/mo</sub></div>
+        <div class="plan-billing">Billed monthly · cancel anytime</div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span>24 videos per month (any mix)</li>
+          <li><span class="check">✓</span>Full content strategy & calendar</li>
+          <li><span class="check">✓</span>Hollywood-grade color grading</li>
+          <li><span class="check">✓</span>Custom motion graphics & text</li>
+          <li><span class="check">✓</span>Voiceover & audio polish</li>
+          <li><span class="check">✓</span>24-hour turnaround</li>
+          <li><span class="check">✓</span>Weekly 1:1 strategy calls</li>
+          <li><span class="check">✓</span>Weekly analytics deep-dive</li>
+          <li><span class="check">✓</span>Priority Slack access</li>
+        </ul>
+        <a href="#apply" class="btn btn-outline plan-btn">Apply for Premium →</a>
+      </div>
+
+    </div>
+
+    <p class="pricing-footnote reveal">
+      Not sure which plan fits? <a href="#apply">Book a free 20-minute call</a> — we'll give you an honest recommendation, even if you don't need us yet.
+    </p>
+  </div>
+</section>
+
+<!-- ──────────── APPLY / CTA ──────────── -->
+<section class="section cta-section" id="apply">
+  <div class="cta-inner">
+    <div class="eyebrow reveal" style="margin-bottom:1.25rem;color:rgba(192,123,47,0.75);justify-content:center;">
+      <span style="display:inline-flex;align-items:center;gap:10px;">
+        <span style="width:22px;height:1px;background:rgba(192,123,47,0.5);display:inline-block;"></span>
+        Limited Availability
+      </span>
+    </div>
+
+    <h2 class="reveal d1">
+      Ready to turn your<br>content into <em>clients?</em>
+    </h2>
+
+    <p class="reveal d2">
+      We work with a maximum of 12 brands at a time to protect quality. Join the waitlist — we'll reach out within 24 hours to schedule your free strategy call.
+    </p>
+
+    <!-- Waitlist Form -->
+    <div class="wl-wrap reveal d3" id="wlWrap">
+      <div class="wl-input-row" id="wlRow">
+        <input type="email" id="wlEmail" placeholder="Your email address" autocomplete="email" />
+        <button type="button" id="wlBtn" onclick="handleSubmit()">
+          <span class="btn-label">Apply Now</span>
+          <div class="spin"></div>
+        </button>
+      </div>
+      <div class="wl-error" id="wlError"></div>
+      <p class="wl-hint" id="wlHint">No obligation. We'll send a link to book your free call.</p>
+
+      <div class="live-counter">
+        <div class="live-dot"></div>
+        <span>Join <strong id="signupCount">—</strong> others on the waitlist</span>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="wl-success" id="wlSuccess" style="max-width:420px;margin:0 auto;">
+      <div class="wl-success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--amber2);">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+      </div>
+      <h4>You're on the list.</h4>
+      <p>Expect an email from us within 24 hours with a link to book your free strategy call.<br>In the meantime — <a href="#work">review our case studies.</a></p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ──────────── FOOTER ──────────── -->
+<footer>
+  <a href="#" class="footer-logo">Frame<em>Craft</em></a>
+  <p>© 2025 FrameCraft Agency. All rights reserved.</p>
+  <div class="footer-links">
+    <a href="#work">Work</a>
+    <a href="#testimonials">Results</a>
+    <a href="#pricing">Pricing</a>
+    <a href="mailto:hello@framecraft.agency">Contact</a>
+  </div>
+</footer>
+
+<!-- ──────────── SCRIPTS ──────────── -->
+<script>
+/* ═══════════════════════════════════════════
+   SUPABASE CONFIG — replace with your own
+   ═══════════════════════════════════════════ */
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const CONFIGURED   = SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+
+/* ── Supabase helpers ──────────────────────── */
+async function dbInsert(email) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ email, source: 'website' })
+  });
+  if (r.status === 409) return 'duplicate';
+  if (!r.ok) throw new Error('server_error');
+  return 'ok';
+}
+
+async function dbCount() {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/waitlist?select=id`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer': 'count=exact',
+      'Range': '0-0'
+    }
+  });
+  const cr = r.headers.get('Content-Range');
+  if (cr) { const m = cr.match(/\/(\d+)$/); if (m) return parseInt(m[1]); }
+  return null;
+}
+
+/* ── Load count ───────────────────────────── */
+async function loadCount() {
+  const el = document.getElementById('signupCount');
+  if (!CONFIGURED) { el.textContent = '—'; return; }
+  try { const n = await dbCount(); if (n !== null) el.textContent = n.toLocaleString(); }
+  catch { el.textContent = '—'; }
+}
+loadCount();
+
+/* ── Validation ───────────────────────────── */
+const isEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+
+/* ── UI helpers ───────────────────────────── */
+function setLoading(on) {
+  const b = document.getElementById('wlBtn');
+  b.disabled = on;
+  b.classList.toggle('loading', on);
+}
+function showError(msg) {
+  const err = document.getElementById('wlError');
+  err.textContent = msg; err.style.display = 'block';
+  const row = document.getElementById('wlRow');
+  row.classList.add('error', 'shake');
+  setTimeout(() => row.classList.remove('shake'), 450);
+}
+function clearError() {
+  document.getElementById('wlError').style.display = 'none';
+  document.getElementById('wlRow').classList.remove('error');
+}
+function showSuccess() {
+  document.getElementById('wlWrap').style.display = 'none';
+  const s = document.getElementById('wlSuccess');
+  s.style.display = 'flex';
+  s.style.animation = 'fadeIn 0.6s cubic-bezier(0.16,1,0.3,1) forwards';
+}
+
+/* ── Submit ───────────────────────────────── */
+async function handleSubmit() {
+  const email = document.getElementById('wlEmail').value.trim();
+  clearError();
+  if (!email)          { showError('Please enter your email address.'); return; }
+  if (!isEmail(email)) { showError('Please enter a valid email address.'); return; }
+
+  if (!CONFIGURED) {
+    /* Demo mode */
+    setLoading(true);
+    await new Promise(r => setTimeout(r, 900));
+    setLoading(false);
+    showSuccess();
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const res = await dbInsert(email);
+    if (res === 'duplicate') {
+      setLoading(false);
+      showError("You're already on our list — we'll be in touch soon!");
+      return;
+    }
+    const n = await dbCount();
+    if (n !== null) document.getElementById('signupCount').textContent = n.toLocaleString();
+    setLoading(false);
+    showSuccess();
+  } catch {
+    setLoading(false);
+    showError('Something went wrong. Email us directly: hello@framecraft.agency');
+  }
+}
+
+/* ── Enter key ───────────────────────────── */
+document.getElementById('wlEmail').addEventListener('keydown', e => { if (e.key === 'Enter') handleSubmit(); });
+document.getElementById('wlEmail').addEventListener('input', clearError);
+
+/* ── Nav shrink ──────────────────────────── */
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', scrollY > 50);
+}, { passive: true });
+
+/* ── Scroll reveal ───────────────────────── */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('up'); obs.unobserve(e.target); } });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+
+<style>
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform: none; }
+}
+</style>
+</body>
+</html>
