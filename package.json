@@ -1,0 +1,13 @@
+{
+  "name": "framecraft",
+  "version": "1.0.0",
+  "description": "FrameCraft - We Turn Short-Form Content Into Revenue",
+  "scripts": {
+    "build": "node build-speed-insights.js",
+    "lint": "echo 'No linter configured for static HTML'",
+    "postinstall": "npm run build"
+  },
+  "dependencies": {
+    "@vercel/speed-insights": "^1.0.14"
+  }
+}
