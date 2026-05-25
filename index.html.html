@@ -1333,6 +1333,12 @@ const obs = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 </script>
 
+<!-- Vercel Speed Insights -->
+<script type="module">
+  import { injectSpeedInsights } from './public/speed-insights.js';
+  injectSpeedInsights();
+</script>
+
 <style>
 @keyframes fadeIn {
   from { opacity:0; transform: translateY(12px); }
